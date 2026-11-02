@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Бюллетень предпроцедурной очистки · НК-04/Ч</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #eceeed;
+  --panel: #f7f8f7;
+  --ink: #101517;
+  --muted: #566064;
+  --line: #b4bcbe;
+  --line-strong: #101517;
+  --accent: #0d5961;
+  --accent-ink: #ffffff;
+  --error: #9b1c1c;
+  --sans: "IBM Plex Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "IBM Plex Mono", "Consolas", "Courier New", monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0b0f11;
+  --panel: #12181b;
+  --ink: #dde3e4;
+  --muted: #8b979b;
+  --line: #2b373b;
+  --line-strong: #dde3e4;
+  --accent: #7cc3c9;
+  --accent-ink: #0b0f11;
+  --error: #ef8a8a;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f11;
+    --panel: #12181b;
+    --ink: #dde3e4;
+    --muted: #8b979b;
+    --line: #2b373b;
+    --line-strong: #dde3e4;
+    --accent: #7cc3c9;
+    --accent-ink: #0b0f11;
+    --error: #ef8a8a;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-padding-top: 80px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bar {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-strong);
+}
+.bar-in {
+  max-width: 880px; margin: 0 auto; padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.bar-id { font-family: var(--mono); font-size: 13px; letter-spacing: .02em; }
+.bar-right { display: flex; align-items: center; gap: 16px; }
+.progress { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+.theme-btn {
+  font: inherit; font-size: 13px; color: var(--ink);
+  background: transparent; border: 1px solid var(--line-strong);
+  padding: 5px 12px; cursor: pointer;
+}
+.theme-btn:hover { background: var(--ink); color: var(--bg); }
+.meter { height: 3px; background: var(--line); }
+.meter > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+
+main { max-width: 880px; margin: 0 auto; padding: 40px 20px 80px; }
+
+h1 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 6px; letter-spacing: -.01em; }
+.sub { font-family: var(--mono); font-size: 14px; color: var(--muted); margin: 0 0 28px; }
+.notice {
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 16px; margin: 0 0 36px; max-width: 62ch;
+}
+
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+legend { padding: 0; }
+
+.ident {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+  border: 1px solid var(--line-strong); background: var(--panel);
+  margin-bottom: 48px;
+}
+.ident .cell { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.ident .cell:nth-child(odd) { border-right: 1px solid var(--line); }
+.ident .cell:nth-last-child(-n+2) { border-bottom: 0; }
+.ident .cell.wide { grid-column: 1 / -1; border-right: 0; }
+.ident .cell.wide:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
+.ident .cell:last-child { border-bottom: 0; }
+label.fl { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+
+input[type=text], input[type=number], textarea {
+  width: 100%; font: inherit; color: var(--ink);
+  background: transparent; border: 0; border-bottom: 1px solid var(--line-strong);
+  padding: 6px 0; border-radius: 0;
+}
+textarea {
+  border: 1px solid var(--line-strong); padding: 10px 12px; resize: vertical;
+  min-height: 84px; background: var(--panel);
+}
+input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type=number]::-webkit-inner-spin-button { opacity: .4; }
+
+.section { display: grid; grid-template-columns: 120px 1fr; gap: 0 24px; margin-bottom: 8px; }
+.section-head {
+  padding-top: 18px; border-top: 2px solid var(--line-strong);
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
+}
+.section-head strong { display: block; color: var(--ink); font-weight: 500; font-size: 14px; }
+.questions { border-top: 2px solid var(--line-strong); }
+.q { padding: 18px 0 22px; border-bottom: 1px solid var(--line); }
+.q:last-child { border-bottom: 0; }
+.q-title { font-weight: 500; margin: 0 0 12px; display: flex; gap: 12px; }
+.q-n { font-family: var(--mono); color: var(--accent); min-width: 28px; }
+.q.invalid .q-n, .q.invalid .err { color: var(--error); }
+.err { display: none; font-size: 13px; margin-top: 8px; color: var(--error); }
+.q.invalid .err { display: block; }
+.q.invalid { box-shadow: -4px 0 0 var(--error); padding-left: 12px; }
+
+.opts { display: grid; gap: 2px; margin-left: 40px; }
+.opt { position: relative; }
+.opt input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opt span {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 8px 10px; border: 1px solid transparent;
+}
+.opt span::before {
+  content: ""; flex: none; width: 16px; height: 16px; margin-top: 3px;
+  border: 1.5px solid var(--line-strong); background: transparent;
+}
+.opt:hover span { border-color: var(--line); }
+.opt input:checked + span { border-color: var(--line-strong); background: var(--panel); }
+.opt input:checked + span::before {
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--panel);
+}
+.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.q .text { margin-left: 40px; }
+
+.actions { margin-top: 40px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.submit {
+  font: inherit; font-weight: 500; font-size: 16px;
+  background: var(--accent); color: var(--accent-ink);
+  border: 1px solid var(--accent); padding: 12px 28px; cursor: pointer;
+}
+.submit:hover { filter: brightness(1.1); }
+.submit:disabled { opacity: .5; cursor: default; }
+.submit:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.status { font-size: 14px; color: var(--muted); }
+.status.bad { color: var(--error); }
+.hint { font-size: 13px; color: var(--muted); margin-top: 16px; max-width: 62ch; }
+
+.done { display: none; max-width: 62ch; padding-top: 24px; }
+.done h2 { font-size: 26px; margin: 0 0 12px; font-weight: 600; }
+.done .ref { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+.result { border: 1px solid var(--line-strong); background: var(--panel); padding: 20px 22px; margin-bottom: 36px; }
+.result-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.result h3 { font-size: 20px; line-height: 1.3; margin: 0 0 10px; font-weight: 600; }
+.result p { margin: 0 0 10px; }
+.result .rec { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
+.result .rec span { display: block; font-size: 13px; color: var(--muted); }
+.result .rec b { font-weight: 500; }
+.done .final { font-size: 18px; margin: 0 0 6px; }
+.done .final2 { font-weight: 600; font-size: 18px; margin: 0; }
+body.sent .form-wrap { display: none; }
+body.sent .done { display: block; }
+body.sent .meter, body.sent .progress { visibility: hidden; }
+
+/* вход в служебный раздел */
+.nub {
+  display: block; margin: 56px 0 0 auto; width: 14px; height: 14px; padding: 0;
+  background: rgba(255, 36, 0, .35); border: 1px solid #ff2400; opacity: .8; cursor: pointer;
+}
+.nub:hover, .nub:focus-visible { opacity: 1; background: rgba(255, 36, 0, .7); }
+.nub:focus-visible { outline: 2px solid #ff2400; outline-offset: 3px; }
+
+/* служебный раздел */
+.secret { display: none; padding-top: 8px; }
+body.secret-on .secret { display: block; }
+body.secret-on .form-wrap, body.secret-on .done { display: none !important; }
+body.secret-on .progress, body.secret-on .meter { visibility: hidden; }
+.secret .lead { font-style: italic; margin: 0 0 28px; color: var(--muted); }
+.secret h2 { font-size: 17px; font-weight: 600; margin: 28px 0 10px; }
+.checks { list-style: none; padding: 0; margin: 0; }
+.checks li { display: flex; gap: 12px; align-items: flex-start; padding: 6px 0; }
+.checks li::before { content: ""; flex: none; width: 16px; height: 16px; margin-top: 4px; border: 1.5px solid var(--line-strong); }
+.lines { margin: 4px 0 0; }
+.lines div { height: 30px; border-bottom: 1px solid var(--line-strong); }
+.note { margin: 26px 0 0; max-width: 62ch; }
+.note b { font-weight: 600; }
+.sign { margin-top: 30px; display: grid; gap: 14px; max-width: 520px; }
+.sign div { display: flex; gap: 10px; align-items: flex-end; }
+.sign span.blank { flex: 1; border-bottom: 1px solid var(--line-strong); height: 1.2em; }
+.sign .short { max-width: 200px; }
+.outro { margin-top: 36px; }
+.outro p { margin: 0 0 4px; }
+.outro .b { font-weight: 600; }
+.mini { width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 14px; border: 1px solid var(--line-strong); }
+.mini th, .mini td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.mini th { width: 130px; font-weight: 600; font-family: var(--mono); border-right: 1px solid var(--line); }
+.mini tr:last-child th, .mini tr:last-child td { border-bottom: 0; }
+
+body.glitch {
+  --bg: #000000; --panel: #000000; --ink: #ff4d4d; --muted: #b53b3b;
+  --line: #4a1012; --line-strong: #ff4d4d; --accent: #ff2a2a; --accent-ink: #000000; --error: #ff8a8a;
+  color-scheme: dark;
+}
+
+@media (max-width: 720px) {
+  .section { grid-template-columns: 1fr; }
+  .section-head { border-top: 2px solid var(--line-strong); padding-bottom: 8px; }
+  .questions { border-top: 0; }
+  .ident { grid-template-columns: 1fr; }
+  .ident .cell, .ident .cell:nth-child(odd) { border-right: 0; border-bottom: 1px solid var(--line); }
+  .ident .cell:last-child { border-bottom: 0; }
+  .opts, .q .text { margin-left: 0; }
+  h1 { font-size: 24px; }
+  .bar-id { font-size: 12px; }
+  .mini th, .mini td { display: block; width: auto; border-right: 0; }
+  .mini th { border-bottom: 0; padding-bottom: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .meter > div { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="bar-id">НК-04/Ч &nbsp;/&nbsp; версия 6.2</div>
+    <div class="bar-right">
+      <div class="progress" id="progress">Заполнено 0 из 12</div>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Переключить тему">Тема: авто</button>
+    </div>
+  </div>
+  <div class="meter"><div id="meter"></div></div>
+</header>
+
+<main>
+  <div class="form-wrap">
+    <h1>Бюллетень предпроцедурной очистки</h1>
+    <p class="sub">Форма НК-04/Ч · Версия 6.2</p>
+    <p class="notice">Уважаемый пользователь! Перед процедурой очистки нейрокомпьютера просим ответить на следующие вопросы. Не пропускайте пункты, даже если они кажутся вам бессмысленными.</p>
+
+    <form id="form" novalidate>
+      <div class="ident" id="ident">
+        <div class="cell wide">
+          <label class="fl" for="f_name">Ф. И. О.</label>
+          <input type="text" id="f_name" autocomplete="off">
+        </div>
+        <div class="cell">
+          <label class="fl" for="f_kind">Вид</label>
+          <input type="text" id="f_kind" autocomplete="off">
+        </div>
+        <div class="cell">
+          <label class="fl" for="f_age">Возраст</label>
+          <input type="number" id="f_age" min="0" inputmode="numeric">
+        </div>
+        <div class="cell">
+          <label class="fl" for="f_nc">Номер нейрокомпьютера</label>
+          <input type="text" id="f_nc" autocomplete="off">
+        </div>
+        <div class="cell">
+          <label class="fl" for="f_date">Дата заполнения</label>
+          <input type="text" id="f_date" autocomplete="off">
+        </div>
+      </div>
+
+      <div id="sections"></div>
+
+      <div class="actions">
+        <button class="submit" type="submit" id="submitBtn">Завершить заполнение</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+      <p class="hint">Все пункты обязательны. После отправки изменить ответы будет невозможно.</p>
+    </form>
+    <button class="nub" id="nubIn" type="button" aria-label="Служебный раздел"></button>
+  </div>
+
+  <section class="done" id="done" aria-live="polite">
+    <h2>Бюллетень принят</h2>
+    <div class="ref" id="doneRef"></div>
+    <div class="result">
+      <div class="result-label">Заключение</div>
+      <h3 id="resTitle"></h3>
+      <p id="resBody"></p>
+      <p class="rec"><span>Рекомендация</span> <b id="resRec"></b></p>
+    </div>
+    <p class="final">Благодарим за сотрудничество. Вы можете быть свободны.</p>
+    <p class="final2">Ваша предыдущая версия уже уведомлена.</p>
+  </section>
+
+  <section class="secret" id="secret" aria-label="Служебная отметка">
+    <h1>Служебная отметка</h1>
+    <p class="lead">Заполняется оператором. Пациенту не показывать.</p>
+
+    <h2>Результаты первичной оценки:</h2>
+    <ul class="checks">
+      <li>Стандартный профиль</li>
+      <li>Обнаружены посторонние воспоминания</li>
+      <li>Обнаружена нестандартная последовательность ответов</li>
+      <li>Обнаружена посторонняя личность</li>
+      <li>Пациент подлежит стиранию личности</li>
+      <li>Повторная очистка не рекомендуется</li>
+    </ul>
+
+    <h2>Дополнительные замечания оператора:</h2>
+    <div class="lines"><div></div><div></div><div></div></div>
+
+    <p class="note"><b>Примечание:</b> если пациент спросит, кто такой «один из вас» в вопросе № 7, не разъяснять формулировку.</p>
+    <p class="note"><b>ПРЕДУПРЕЖДЕНИЕ:</b> не пытайтесь восстановить ответы пациента из резервной копии до завершения процедуры.</p>
+
+    <div class="sign">
+      <div>Ответственный оператор: <span class="blank"></span></div>
+      <div>Подпись: <span class="blank"></span></div>
+      <div class="short">Дата: <span class="blank"></span></div>
+    </div>
+
+    <div class="outro">
+      <p>Благодарим за сотрудничество. Вы можете быть свободны.</p>
+      <p class="b">Ваша предыдущая версия уже уведомлена.</p>
+    </div>
+
+    <table class="mini">
+      <tbody>
+        <tr><th>Скелет</th><td>многокомпонентные экструдированные агломераты дегидратированного амилопектин-глиадинового матрикса, полученные путем механического формования гидротированной фракции эндосперма твердых сортов пшеницы с последующим термодинамическим удалением свободной влаги до достижения критического уровня стабильности полимерной структуры.</td></tr>
+        <tr><th>Ветерану</th><td>дискообразный металлический артефакт фиксированного радиуса, предназначенный для экзогенного ношения на антропоморфном субъекте с целью публичной манифестации его социально-иерархического превосходства или коммеморации исторического прецедента.</td></tr>
+        <tr><th>Собаке</th><td>специализированный дегидрированный прессованный композит субпродуктов животного или синтетического происхождения, структурно имитирующий фрагмент скелетной системы позвоночных, предназначенный для контролируемой деструкции путем гнатодинамического воздействия представителями подвида Canis lupus familiaris.</td></tr>
+        <tr><th>Великану</th><td>элементарный дискретный носитель аналоговой текстовой макроинформации, представляющий собой фрагмент целлюлозно-бумажного субстрата произвольной геометрии, предназначенный для асинхронной экспресс-коммуникации между двумя или более биологическими агентами в условиях пространственно-временного разобщения, функционирующий без привлечения электронно-цифровых интерфейсов передачи данных.</td></tr>
+      </tbody>
+    </table>
+
+    <button class="nub" id="nubOut" type="button" aria-label="Вернуться к бюллетеню"></button>
+  </section>
+</main>
+
+<script>
+/* ===== НАСТРОЙКА ===== */
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1566688659673976854/fWNsUwYy9RBwHrt5IKBYKwPl2PNrtAq6sUV7IaE0Xz7h8My30vDsHh0FAR_8F77wAHL7";
+
+/* ===== ДАННЫЕ БЮЛЛЕТЕНЯ ===== */
+const SECTIONS = [
+  { roman: "I", title: "Личные сведения", qs: [
+    { n: 1, type: "text", rows: 2, text: "Какой сорт пива вы предпочитаете? Укажите марку, крепость и причину." },
+    { n: 2, type: "radio", text: "Как часто вы думаете о Римской империи до начала колонизационной эпохи?",
+      opts: ["Никогда", "Возможно, частично", "Раз в сутки", "До 10 раз в месяц", "Я не знаю, что такое Римская империя"] }
+  ]},
+  { roman: "II", title: "Бытовые привычки", qs: [
+    { n: 3, type: "radio", text: "Почему вы не любите четверги?",
+      opts: ["Ничего не имею против четвергов", "В этот день обычно происходят неприятности", "Не помню", "Мне запрещено об этом говорить", "Четверг не является настоящим днём недели"] },
+    { n: 4, type: "radio", text: "Если холодильник ночью произнесёт ваше имя, что вы сделаете?",
+      opts: ["Отключу питание", "Позову специалиста", "Спрошу, кто убийца в фильме «Убийца дворецкий?»", "Сделаю вид, что сплю", "Возможно, частично"] }
+  ]},
+  { roman: "III", title: "Память и личность", qs: [
+    { n: 5, type: "text", rows: 2, text: "Какой звук вызывает у вас наибольшее раздражение?" },
+    { n: 6, type: "radio", text: "Как вы думаете, какая часть вашей личности занимает больше всего оперативной памяти?",
+      opts: ["Детские воспоминания", "Страх", "Привычки", "Чужие голоса", "Фоновые процессы", "Обновление системы"] }
+  ]},
+  { roman: "IV", title: "Нейросовместимость", qs: [
+    { n: 7, type: "text", rows: 2, text: "Сколько времени, по вашему мнению, требуется для постройки сверхмассивной межпланетной ракеты типа «Циклоп»?" },
+    { n: 8, type: "radio", text: "Как вы относитесь к мысли, что некоторые ваши воспоминания могли быть записаны не вами?",
+      opts: ["Спокойно", "Настороженно", "Отказываюсь отвечать", "Возможно, частично", "Позитивно!"] }
+  ]},
+  { roman: "V", title: "Поведенческая оценка", qs: [
+    { n: 9, type: "radio", text: "Если во время процедуры оператор назовёт вас чужим именем, следует ли вам поправить его?",
+      opts: ["Да", "Нет", "Возможно, частично", "Не в этот раз"] },
+    { n: 10, type: "text", rows: 3, text: "Какую часть своего тела вы бы не стали возвращать, если бы обнаружили, что она вам не принадлежит?" }
+  ]},
+  { roman: "VI", title: "Контрольные вопросы", qs: [
+    { n: 11, type: "text", rows: 2, text: "Как вы относитесь к гладиаторским боям?" },
+    { n: 12, type: "radio", text: "Последний вопрос. Вы уверены, что хотите сохранить именно ту личность, которая сейчас заполняет этот бюллетень?",
+      opts: ["Да", "Нет", "Я не помню, чтобы соглашался на процедуру", "Возможно, частично"] }
+  ]}
+];
+const ALL_Q = SECTIONS.flatMap(s => s.qs);
+
+/* ===== ОТРИСОВКА ===== */
+const root = document.getElementById("sections");
+SECTIONS.forEach(s => {
+  const sec = document.createElement("div");
+  sec.className = "section";
+  const head = document.createElement("div");
+  head.className = "section-head";
+  head.innerHTML = `<strong>Раздел ${s.roman}</strong>`;
+  head.appendChild(document.createTextNode(s.title));
+  const qs = document.createElement("div");
+  qs.className = "questions";
+  s.qs.forEach(q => {
+    const box = document.createElement("div");
+    box.className = "q";
+    box.id = "q" + q.n;
+    const fs = document.createElement("fieldset");
+    const lg = document.createElement("legend");
+    lg.className = "q-title";
+    lg.innerHTML = `<span class="q-n">${q.n}.</span>`;
+    const t = document.createElement("span");
+    t.textContent = q.text;
+    lg.appendChild(t);
+    fs.appendChild(lg);
+    if (q.type === "radio") {
+      const o = document.createElement("div");
+      o.className = "opts";
+      q.opts.forEach(v => {
+        const l = document.createElement("label");
+        l.className = "opt";
+        const i = document.createElement("input");
+        i.type = "radio"; i.name = "q" + q.n; i.value = v;
+        const sp = document.createElement("span");
+        sp.textContent = v;
+        l.append(i, sp);
+        o.appendChild(l);
+      });
+      fs.appendChild(o);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.className = "text"; ta.name = "q" + q.n; ta.rows = q.rows;
+      ta.setAttribute("aria-label", "Ответ на вопрос " + q.n);
+      fs.appendChild(ta);
+    }
+    const er = document.createElement("div");
+    er.className = "err";
+    er.textContent = "Ответьте на этот пункт.";
+    fs.appendChild(er);
+    box.appendChild(fs);
+    qs.appendChild(box);
+  });
+  sec.append(head, qs);
+  root.appendChild(sec);
+});
+
+/* ===== ДАТА ПО УМОЛЧАНИЮ: СЕГОДНЯ + 2000 ЛЕТ ===== */
+const dt = new Date();
+const pad = n => String(n).padStart(2, "0");
+document.getElementById("f_date").value = `${pad(dt.getDate())}.${pad(dt.getMonth() + 1)}.${dt.getFullYear() + 2000}`;
+const startedAt = Date.now();
+
+/* ===== ТЕМА ===== */
+const themeBtn = document.getElementById("themeBtn");
+const THEMES = ["auto", "light", "dark"];
+const THEME_LABEL = { auto: "Тема: авто", light: "Тема: светлая", dark: "Тема: тёмная" };
+let theme = "auto";
+try { const s = localStorage.getItem("nk04-theme"); if (THEMES.includes(s)) theme = s; } catch (e) {}
+function applyTheme() {
+  if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", theme);
+  themeBtn.textContent = THEME_LABEL[theme];
+}
+themeBtn.addEventListener("click", () => {
+  theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+  try { localStorage.setItem("nk04-theme", theme); } catch (e) {}
+  applyTheme();
+});
+applyTheme();
+
+/* ===== ОТВЕТЫ И ПРОГРЕСС ===== */
+function getAnswer(q) {
+  if (q.type === "radio") {
+    const c = document.querySelector(`input[name="q${q.n}"]:checked`);
+    return c ? c.value : "";
+  }
+  return document.querySelector(`textarea[name="q${q.n}"]`).value.trim();
+}
+function updateProgress() {
+  const done = ALL_Q.filter(q => getAnswer(q) !== "").length;
+  document.getElementById("progress").textContent = `Заполнено ${done} из 12`;
+  document.getElementById("meter").style.width = (done / 12 * 100) + "%";
+}
+document.getElementById("form").addEventListener("input", e => {
+  updateProgress();
+  const box = e.target.closest(".q");
+  if (box && getAnswer(ALL_Q[+box.id.slice(1) - 1]) !== "") box.classList.remove("invalid");
+  if (e.target.closest(".cell")) e.target.style.borderBottomColor = "";
+});
+
+/* ===== СИСТЕМА ОПРЕДЕЛЕНИЯ РЕЗУЛЬТАТОВ ===== */
+/* Л лояльность, С стабильность (нестабильность = минус), А самостоятельность, Ц целостность, П полезность */
+const SCORES = {
+  2: { "Никогда": { С: 2 }, "Возможно, частично": { Ц: 1 }, "Раз в сутки": { А: 2 }, "До 10 раз в месяц": { Л: 1 },
+       "Я не знаю, что такое Римская империя": { С: 2, П: 1 } },
+  3: { "Ничего не имею против четвергов": { Л: 2 }, "В этот день обычно происходят неприятности": { А: 1, Ц: 1 },
+       "Не помню": { С: -2 }, "Мне запрещено об этом говорить": { А: 2, С: -1 },
+       "Четверг не является настоящим днём недели": { С: -2, Ц: 1 } },
+  4: { "Отключу питание": { А: 2 }, "Позову специалиста": { Л: 2 },
+       "Спрошу, кто убийца в фильме «Убийца дворецкий?»": { С: -2, П: 1 }, "Сделаю вид, что сплю": { Ц: 2 },
+       "Возможно, частично": { С: -2 } },
+  8: { "Спокойно": { Л: 2 }, "Настороженно": { А: 1, Ц: 1 }, "Отказываюсь отвечать": { А: 2 },
+       "Возможно, частично": { С: -2 }, "Позитивно!": { П: 2, С: -1 } },
+  9: { "Да": { А: 2 }, "Нет": { Л: 2 }, "Возможно, частично": { С: -2 }, "Не в этот раз": { Ц: 2, П: 1 } },
+  12: { "Да": { Л: 2 }, "Нет": { А: 2 }, "Я не помню, чтобы соглашался на процедуру": { С: -2, Ц: 2 },
+        "Возможно, частично": { С: -2 } }
+};
+const PARAM_NAMES = { Л: "Лояльность", С: "Стабильность", А: "Самостоятельность", Ц: "Целостность", П: "Полезность" };
+const LEVEL_NAMES = ["низкий", "средний", "высокий"];
+
+/* пороги: значение <= low -> низкий, >= high -> высокий, иначе средний */
+const THRESH = { Л: [1, 4], С: [-4, 0], А: [1, 4], Ц: [1, 4], П: [0, 2] };
+function level(k, v) {
+  const [lo, hi] = THRESH[k];
+  if (v <= lo) return 0;
+  if (v >= hi) return 2;
+  return 1;
+}
+
+const RESULTS = {
+  А: { title: "Стандартный человеческий профиль",
+       body: "Сознание пациента признано достаточно стабильным. Посторонние воспоминания не обнаружены.",
+       rec: "Допустить к очистке. После процедуры выдать пациенту талон на бесплатный суп." },
+  Б: { title: "Экономически перспективный субъект",
+       body: "Пациент демонстрирует высокую лояльность и низкую склонность к сопротивлению.",
+       rec: "Сохранить личность. Передать в отдел кадров. Возможна повторная эксплуатация." },
+  В: { title: "Несанкционированная личность",
+       body: "Выявлены признаки самостоятельного мышления, не предусмотренного текущей лицензией.",
+       rec: "Удалить избыточные функции. Пациенту сообщить об успешной оптимизации." },
+  Г: { title: "Множественный пользователь",
+       body: "Обнаружены признаки присутствия нескольких субъектов в одном нейронном пространстве.",
+       rec: "Определить основного владельца. Остальные личности считать временными файлами." },
+  Д: { title: "Несовместимость с календарём",
+       body: "Пациент демонстрирует патологическую реакцию на временные циклы.",
+       rec: "Исключить четверги из личного расписания. При повторных жалобах удалить среду обитания." },
+  Е: { title: "Пациент не подлежит восстановлению",
+       body: "Система не смогла установить, какая из обнаруженных личностей является исходной.",
+       rec: "Сохранить все копии до выяснения, какая из них оплачивает процедуру." },
+  Ж: { title: "Успешное отсутствие сознания",
+       body: "Нейрокомпьютер функционирует штатно. Признаки пользователя не обнаружены.",
+       rec: "Признать процедуру завершённой. Выдать пациенту подтверждение присутствия." },
+  З: { title: "Обнаружен незарегистрированный оператор",
+       body: "Пациент демонстрирует признаки взаимодействия с субъектом, не имеющим действующего допуска.",
+       rec: "Не выключать нейрокомпьютер. Не отвечать на вопросы пациента. Не смотреть на оператора." }
+};
+
+function assess(a) {
+  const v = { Л: 0, С: 0, А: 0, Ц: 0, П: 0 };
+  Object.keys(SCORES).forEach(n => {
+    const d = SCORES[n][a[n]] || {};
+    Object.keys(d).forEach(k => { v[k] += d[k]; });
+  });
+  const lv = {};
+  Object.keys(v).forEach(k => { lv[k] = level(k, v[k]); });
+
+  let code;
+  if (lv.П === 2 && lv.С === 0) code = "З";
+  else if (lv.Ц === 2 && lv.С === 0) code = "Е";
+  else if (lv.Ц === 2) code = "Г";
+  else if (a[3] === "Четверг не является настоящим днём недели") code = "Д";
+  else if (lv.А === 2) code = "В";
+  else if (lv.Л === 2 && lv.А === 0) code = "Б";
+  else if (lv.Л === 0 && lv.А === 0 && lv.Ц === 0) code = "Ж";
+  else if (lv.С === 0) code = "Е";
+  else code = "А";
+  return { values: v, levels: lv, code, result: RESULTS[code] };
+}
+
+/* ===== СБОРКА СООБЩЕНИЯ ===== */
+const cut = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+const esc = s => s.replace(/([*_`~|>\\])/g, "\\$1");
+
+function buildPayload(ident, a, res, refId) {
+  const L = [];
+  L.push("**Анкетные данные**");
+  L.push(`Ф. И. О.: ${esc(cut(ident.name, 120))}`);
+  L.push(`Вид: ${esc(cut(ident.kind, 80))}`);
+  L.push(`Возраст: ${esc(ident.age)}`);
+  L.push(`Номер нейрокомпьютера: ${esc(cut(ident.nc, 80))}`);
+  L.push(`Дата заполнения: ${esc(ident.date)}`);
+  L.push("");
+  L.push("**Ответы**");
+  ALL_Q.forEach(q => {
+    const val = a[q.n];
+    L.push(`${q.n}. ${esc(cut(val.replace(/\s*\n\s*/g, " / "), q.type === "text" ? 260 : 120))}`);
+  });
+  L.push("");
+  L.push("**Параметры**");
+  Object.keys(PARAM_NAMES).forEach(k => {
+    L.push(`${PARAM_NAMES[k]}: ${res.values[k]} (${LEVEL_NAMES[res.levels[k]]})`);
+  });
+  L.push("");
+  L.push(`**Результат ${res.code}: ${res.result.title}**`);
+  L.push(res.result.body);
+  L.push(`Рекомендация: ${res.result.rec}`);
+  let desc = L.join("\n");
+  if (desc.length > 4000) desc = desc.slice(0, 3990) + "\n…";
+  return {
+    username: "НК-04/Ч",
+    allowed_mentions: { parse: [] },
+    embeds: [{
+      title: "Бюллетень предпроцедурной очистки · НК-04/Ч v6.2",
+      description: desc,
+      color: 0x0d5961,
+      footer: { text: `Ref ${refId} · время заполнения ${Math.round((Date.now() - startedAt) / 1000)} с` }
+    }]
+  };
+}
+
+/* ===== ОТПРАВКА ===== */
+const form = document.getElementById("form");
+const statusEl = document.getElementById("status");
+const btn = document.getElementById("submitBtn");
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  statusEl.className = "status"; statusEl.textContent = "";
+
+  const ident = {
+    name: document.getElementById("f_name").value.trim(),
+    kind: document.getElementById("f_kind").value.trim(),
+    age: document.getElementById("f_age").value.trim(),
+    nc: document.getElementById("f_nc").value.trim(),
+    date: document.getElementById("f_date").value.trim()
+  };
+  const a = {};
+  let firstBad = null;
+
+  document.querySelectorAll(".ident input").forEach(i => {
+    i.style.borderBottomColor = i.value.trim() ? "" : "var(--error)";
+    if (!i.value.trim() && !firstBad) firstBad = i;
+  });
+  ALL_Q.forEach(q => {
+    a[q.n] = getAnswer(q);
+    const box = document.getElementById("q" + q.n);
+    const bad = a[q.n] === "";
+    box.classList.toggle("invalid", bad);
+    if (bad && !firstBad) firstBad = box;
+  });
+
+  if (firstBad) {
+    statusEl.className = "status bad";
+    statusEl.textContent = "Заполнены не все пункты. Незаполненные пункты отмечены.";
+    firstBad.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  if (!WEBHOOK_URL) {
+    statusEl.className = "status bad";
+    statusEl.textContent = "Канал передачи не настроен: в файле не указан WEBHOOK_URL.";
+    return;
+  }
+
+  const res = assess(a);
+  const refId = Date.now().toString(36).toUpperCase();
+  btn.disabled = true;
+  statusEl.textContent = "Передача данных…";
+  try {
+    const payload = JSON.stringify(buildPayload(ident, a, res, refId));
+    try {
+      const r = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+    } catch (first) {
+      if (/^HTTP/.test(first.message)) throw first;
+      /* запасной путь: multipart не требует CORS-проверки, ответ не читается */
+      const fd = new FormData();
+      fd.append("payload_json", payload);
+      await fetch(WEBHOOK_URL, { method: "POST", mode: "no-cors", body: fd });
+    }
+    document.getElementById("doneRef").textContent = `Номер записи: ${refId}`;
+    document.getElementById("resTitle").textContent = res.result.title;
+    document.getElementById("resBody").textContent = res.result.body;
+    document.getElementById("resRec").textContent = res.result.rec;
+    document.body.classList.add("sent");
+    window.scrollTo({ top: 0 });
+  } catch (err) {
+    btn.disabled = false;
+    statusEl.className = "status bad";
+    statusEl.textContent = "Не удалось передать данные (" + err.message + "). Проверьте соединение и повторите отправку.";
+  }
+});
+
+/* ===== СЛУЖЕБНЫЙ РЕЖИМ ===== */
+const SECRET = document.getElementById("secret");
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const GLYPHS = "0123456789#%&@$/|<>=+*0101";
+let gl = { on: false, timers: [], nodes: [] };
+
+function collectNodes() {
+  const out = [];
+  [SECRET, document.querySelector(".bar-id")].forEach(rootEl => {
+    const w = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) if (n.nodeValue.trim().length > 1) out.push({ node: n, orig: n.nodeValue, busy: false });
+  });
+  return out;
+}
+function scramble(item, ratio, ms) {
+  if (item.busy) return;
+  item.busy = true;
+  item.node.nodeValue = Array.from(item.orig).map(c =>
+    /\s/.test(c) || Math.random() > ratio ? c : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]).join("");
+  gl.timers.push(setTimeout(() => { item.node.nodeValue = item.orig; item.busy = false; }, ms));
+}
+function tickText() {
+  const k = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < k; i++) {
+    const it = gl.nodes[Math.floor(Math.random() * gl.nodes.length)];
+    if (it) scramble(it, 0.08 + Math.random() * 0.25, 70 + Math.random() * 180);
+  }
+  if (Math.random() < 0.06) {
+    const heads = gl.nodes.filter(x => x.orig.length < 40);
+    const it = heads[Math.floor(Math.random() * heads.length)];
+    if (it) scramble(it, 0.6, 140 + Math.random() * 200);
+  }
+}
+function loopRandom(fn, min, max) {
+  const run = () => { if (!gl.on) return; fn(); gl.timers.push(setTimeout(run, min + Math.random() * (max - min))); };
+  run();
+}
+function enterSecret() {
+  document.body.classList.add("secret-on", "glitch");
+  window.scrollTo({ top: 0 });
+  gl.on = true;
+  gl.nodes = collectNodes();
+  if (!reduce) loopRandom(tickText, 90, 220);
+}
+function leaveSecret() {
+  gl.on = false;
+  gl.timers.forEach(clearTimeout); gl.timers = [];
+  gl.nodes.forEach(it => { it.node.nodeValue = it.orig; it.busy = false; });
+  document.body.classList.remove("secret-on", "glitch");
+  window.scrollTo({ top: 0 });
+}
+document.getElementById("nubIn").addEventListener("click", enterSecret);
+document.getElementById("nubOut").addEventListener("click", leaveSecret);
+</script>
+</body>
+</html>
